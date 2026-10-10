@@ -1,0 +1,2 @@
+# Core logic (src/sec_xbrl.py) is stdlib-only. Only the actor wrapper needs this.
+apify ~= 2.0

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Health check for sec-xbrl-financials-csv: a tiny LIVE pull against the SEC API
+# that verifies the output shape. Exits non-zero on failure or shape change so
+# scripts/health-check (and any scheduler) can alert.
+set -euo pipefail
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec python3 "$DIR/test/test_shape.py" --quick

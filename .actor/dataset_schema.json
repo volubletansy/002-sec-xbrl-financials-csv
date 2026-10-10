@@ -1,0 +1,20 @@
+{
+    "actorSpecification": 1,
+    "views": {
+        "overview": {
+            "title": "Financials",
+            "transformation": {
+                "fields": [
+                    "ticker", "cik", "entity_name", "taxonomy", "concept",
+                    "label", "unit", "period_start", "period_end",
+                    "fiscal_year", "fiscal_period", "value", "form",
+                    "filed", "frame", "accession"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {}
+            }
+        }
+    }
+}

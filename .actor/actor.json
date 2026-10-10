@@ -1,0 +1,13 @@
+{
+    "actorSpecification": 1,
+    "name": "sec-xbrl-financials-csv",
+    "title": "SEC XBRL Company Financials to Tidy CSV",
+    "description": "Turn the official SEC EDGAR XBRL data into a clean one-row-per-metric CSV of company fundamentals (revenue, net income, EPS, assets...).",
+    "version": "0.1",
+    "buildTag": "latest",
+    "input": "./input_schema.json",
+    "dockerfile": "../Dockerfile",
+    "storages": {
+        "dataset": "./dataset_schema.json"
+    }
+}

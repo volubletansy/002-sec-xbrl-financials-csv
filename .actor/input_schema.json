@@ -1,0 +1,54 @@
+{
+    "title": "SEC XBRL Financials input",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "companies": {
+            "title": "Companies (tickers or CIKs)",
+            "type": "array",
+            "description": "One or more tickers (AAPL) or CIK numbers (320193 / 0000320193).",
+            "editor": "stringList",
+            "prefill": ["AAPL", "MSFT"],
+            "example": ["AAPL", "0000789019"]
+        },
+        "concepts": {
+            "title": "Metrics (XBRL concepts)",
+            "type": "array",
+            "description": "us-gaap/dei concept names to include. Leave empty for a curated default set, or use [\"all\"] for every reported concept.",
+            "editor": "stringList",
+            "default": []
+        },
+        "taxonomies": {
+            "title": "Taxonomies",
+            "type": "array",
+            "description": "Which XBRL taxonomies to read.",
+            "editor": "stringList",
+            "default": ["us-gaap", "dei"]
+        },
+        "dateFrom": {
+            "title": "Period end from (YYYY-MM-DD)",
+            "type": "string",
+            "description": "Keep only datapoints whose period end is on/after this date.",
+            "editor": "textfield"
+        },
+        "dateTo": {
+            "title": "Period end to (YYYY-MM-DD)",
+            "type": "string",
+            "description": "Keep only datapoints whose period end is on/before this date.",
+            "editor": "textfield"
+        },
+        "dedupe": {
+            "title": "Deduplicate to latest filing",
+            "type": "boolean",
+            "description": "Keep the most recently filed value for each period (recommended for a clean time series).",
+            "default": true
+        },
+        "userAgentEmail": {
+            "title": "Contact email for SEC User-Agent",
+            "type": "string",
+            "description": "SEC fair-access asks for a contact. Optional; a neutral default is used if blank.",
+            "editor": "textfield"
+        }
+    },
+    "required": ["companies"]
+}
