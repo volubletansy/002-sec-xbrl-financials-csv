@@ -1,2 +1,10 @@
-# Core logic (src/sec_xbrl.py) is stdlib-only. Only the actor wrapper needs this.
+# Core logic (src/sec_xbrl.py) is stdlib-only. Only the Apify actor wrapper
+# (src/main.py) needs the SDK below.
+#
+# pydantic is pinned <2.11 deliberately: pydantic 2.11 made "both default and
+# default_factory on a field" a hard TypeError, which crashes the crawlee version
+# the apify SDK depends on (crawlee's HttpHeaders model) at import time. The pin
+# restores the known-good combo; lift it once the SDK ships a crawlee that fixed
+# this (crawlee >= 0.6).
 apify ~= 2.0
+pydantic < 2.11
