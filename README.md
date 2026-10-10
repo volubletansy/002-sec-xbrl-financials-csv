@@ -1,77 +1,74 @@
-# SEC XBRL Company Financials → Tidy CSV
+# SEC EDGAR Financials Scraper — Company Fundamentals to CSV
 
-Turn the official **SEC EDGAR XBRL** data into a clean, spreadsheet-ready table:
-**one row per (company, concept, unit, period)**. No raw-JSON wrangling.
+**Extract any US public company's financials — revenue, net income, EPS, assets,
+liabilities and more — from official SEC EDGAR XBRL data into a tidy CSV. One row
+per metric per period. No API keys, no raw JSON, no scraping tricks.**
 
-- **Marketplace:** Apify Store (actor) · pay-per-result
-- **Repo:** https://github.com/volubletansy/002-sec-xbrl-financials-csv
-- **Data source:** official SEC EDGAR `companyfacts` API + the SEC ticker map.
-  U.S. government public-domain data; descriptive User-Agent and ~<10 req/s
-  throttle honored per SEC fair-access policy. **ToS-clean.**
-- **Status:** draft (not yet published)
+Point it at tickers or CIKs and get a clean, spreadsheet-ready table you can open
+in Excel, Google Sheets, or pandas in seconds.
 
-## The one job
+---
 
-Given tickers or CIKs, fetch each company's XBRL facts and emit a tidy CSV of
-curated fundamentals (or any concepts you ask for), deduplicated to one row per
-reporting period.
+## What you get
 
-## Input (`.actor/input_schema.json`)
+- **Tidy output** — one row per `(company, metric, unit, period)`, deduplicated to
+  the latest filing, so you get a clean time series instead of restated, nested XBRL.
+- **Official, ToS-clean source** — reads the SEC EDGAR `companyfacts` XBRL API
+  directly. Public-domain U.S. government data; no logins, no anti-bot games.
+- **Curated or custom metrics** — a sensible default set of fundamentals, or pass
+  your own XBRL concepts (or `["all"]` for everything a company reports).
+- **Reliable by design** — mandatory User-Agent, request throttling, and retries.
+
+## Example input
+
+```json
+{
+  "companies": ["AAPL", "MSFT"],
+  "concepts": ["Revenues", "NetIncomeLoss", "EarningsPerShareDiluted"],
+  "dateFrom": "2021-01-01"
+}
+```
+
+## Example output
+
+| ticker | concept | unit | period_end | fiscal_period | value | form | filed |
+|---|---|---|---|---|---|---|---|
+| AAPL | NetIncomeLoss | USD | 2023-09-30 | FY | 96995000000 | 10-K | 2023-11-03 |
+| MSFT | EarningsPerShareDiluted | USD/shares | 2023-06-30 | FY | 9.68 | 10-K | 2023-07-27 |
+
+Full columns: `ticker, cik, entity_name, taxonomy, concept, label, unit,
+period_start, period_end, fiscal_year, fiscal_period, value, form, filed, frame,
+accession`. Export as CSV, JSON, or Excel.
+
+## Input reference
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `companies` *(required)* | string[] | — | Tickers (`AAPL`) or CIKs (`320193` / `0000320193`) |
-| `concepts` | string[] | curated set | us-gaap/dei concept names; `["all"]` for everything |
-| `taxonomies` | string[] | `["us-gaap","dei"]` | Which XBRL taxonomies to read |
-| `dateFrom` / `dateTo` | string | — | Filter on `period_end` (`YYYY-MM-DD`, inclusive) |
-| `dedupe` | boolean | `true` | Keep the latest-filed value per period |
+| `companies` *(required)* | string[] | — | Tickers (`AAPL`) or CIKs (`320193`) |
+| `concepts` | string[] | curated set | XBRL concept names, or `["all"]` |
+| `taxonomies` | string[] | `["us-gaap","dei"]` | Which taxonomies to read |
+| `dateFrom` / `dateTo` | string | — | Filter on `period_end` (`YYYY-MM-DD`) |
+| `dedupe` | boolean | `true` | One row per period, latest filing |
 | `userAgentEmail` | string | — | Optional contact for the SEC User-Agent |
 
-Curated default concepts: Revenues, RevenueFromContractWithCustomer…, GrossProfit,
-OperatingIncomeLoss, NetIncomeLoss, EPS (basic/diluted), Assets, Liabilities,
-StockholdersEquity, Cash…, R&D expense.
+## Good for
 
-## Output schema (CSV columns — stable contract)
+- Pulling multi-year fundamentals for a watchlist into a spreadsheet
+- Feeding a screener, model, or dashboard with clean financials
+- Students and indie fintech builders who don't want to parse XBRL by hand
 
-`ticker, cik, entity_name, taxonomy, concept, label, unit, period_start,
-period_end, fiscal_year, fiscal_period, value, form, filed, frame, accession`
+## Pricing
 
-**Period semantics (important):** XBRL duration facts (income-statement items)
-report both year-to-date and discrete-quarter figures that can share a
-`period_end`; they are kept as separate rows, distinguished by `period_start`.
-Balance-sheet (instant) facts have an empty `period_start`. `fiscal_year` /
-`fiscal_period` describe the *filing*, so the same economic datapoint is **not**
-duplicated across later comparative filings — dedupe keys on the period, keeping
-the most recently `filed` value.
+**Pay per result — $3.00 per 1,000 rows.** No subscription; you pay only for the
+data you pull. A typical single-company, curated-metrics run is a few hundred rows.
 
-## Run
+## How it works / notes
 
-On Apify: set input, run; export the dataset as CSV/JSON/Excel.
+Data comes from the SEC EDGAR `companyfacts` XBRL API (`data.sec.gov`), accessed
+within SEC's fair-access policy (descriptive User-Agent, polite rate). XBRL
+duration facts (income-statement items) can report both year-to-date and discrete
+quarters ending on the same date — these are kept as separate rows and
+distinguished by `period_start`. Balance-sheet (instant) facts have an empty
+`period_start`.
 
-Locally (stdlib only — no install needed for the core):
-
-```bash
-python3 -c "import sys; sys.path.insert(0,'src'); import io, sec_xbrl as sx; \
-rows=sx.company_rows('AAPL', concepts=['NetIncomeLoss']); \
-sx.write_csv(rows, io.StringIO()) "
-```
-
-## Test & health
-
-- `test/test_shape.py` — **live** test against the real SEC API; verifies row
-  shape, exact CSV header, numeric values, and the dedupe invariant.
-- `./health-check` — a quick live pull (CIK 320193, one metric); exits non-zero
-  on failure or output-shape change. Wired into repo `scripts/health-check` once
-  `STATUS` is `live`.
-
-## Layout
-
-```
-src/sec_xbrl.py   # dependency-free core: fetch + flatten + dedupe + CSV
-src/main.py       # Apify actor wrapper (reads input, pushes dataset rows)
-src/__main__.py   # `python3 -m src` entrypoint
-.actor/           # actor.json, input_schema.json, dataset_schema.json
-Dockerfile        # apify/actor-python:3.12
-test/             # live output-shape test
-health-check      # executable quick live check
-```
+Not affiliated with or endorsed by the SEC.
