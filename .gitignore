@@ -9,6 +9,10 @@ venv/
 storage/
 .apify/
 
+# local dev I/O
+INPUT.json
+output.csv
+
 # OS / editor
 .DS_Store
 *.swp

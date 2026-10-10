@@ -1,10 +1,7 @@
-# Core logic (src/sec_xbrl.py) is stdlib-only. Only the Apify actor wrapper
-# (src/main.py) needs the SDK below.
+# No third-party dependencies.
 #
-# pydantic is pinned <2.11 deliberately: pydantic 2.11 made "both default and
-# default_factory on a field" a hard TypeError, which crashes the crawlee version
-# the apify SDK depends on (crawlee's HttpHeaders model) at import time. The pin
-# restores the known-good combo; lift it once the SDK ships a crawlee that fixed
-# this (crawlee >= 0.6).
-apify ~= 2.0
-pydantic < 2.11
+# This actor is intentionally SDK-free: the core (src/sec_xbrl.py) and the Apify
+# wrapper (src/main.py) use the Python standard library only. The apify/crawlee
+# SDK pulls pydantic + browser-fingerprinting deps (browserforge) whose version
+# bumps crashed the actor at import time; we talk to Apify's REST API directly
+# instead. Keep this file empty of deps unless something genuinely needs one.
